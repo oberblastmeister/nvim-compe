@@ -183,31 +183,16 @@ end
 
 --- documentation
 Source.documentation = function(self, completed_item)
-  if self.source.documentation then
-    self:resolve({
-      completed_item = completed_item,
-      callback = function(resolved_completed_item)
-        self.source:documentation({
-          completed_item = resolved_completed_item;
-          context = Context.new({}, {});
-          callback = Async.guard('Source.documentation#callback', Async.fast_schedule_wrap(function(document)
-            if document and #document ~= 0 then
-              vim.call('compe#documentation#open', document)
-            else
-              vim.call('compe#documentation#close')
-            end
-          end));
-          abort = Async.guard('Source.documentation#abort', Async.fast_schedule_wrap(function()
-            vim.call('compe#documentation#close')
-          end));
-        })
+  self:resolve({
+    completed_item = completed_item,
+    callback = function(resolved_completed_item)
+      if resolved_completed_item.info then
+        vim.call('compe#documentation#open', resolved_completed_item.info)
+      else
+        vim.call('compe#documentation#close')
       end
-    })
-  else
-    Async.fast_schedule(function()
-      vim.call('compe#documentation#close')
-    end)
-  end
+    end
+  })
 end
 
 --- confirm
@@ -328,6 +313,7 @@ Source._normalize_items = function(self, _, items)
     item.abbr = item.abbr or item.word
     item.kind = item.kind or metadata.kind or nil
     item.menu = item.menu or metadata.menu or nil
+    item.info = item.info or nil
     item.equal = 1
     item.empty = 1
     item.dup = 1
